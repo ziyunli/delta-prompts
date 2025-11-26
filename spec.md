@@ -5,9 +5,7 @@ A public web tool for comparing system prompts across LLM versions, highlighting
 ## Overview
 
 **Project Name:** delta-prompts
-**Hosting:** GitHub Pages
-**Primary Focus:** Claude system prompts (with architecture supporting future providers)
-**Target Audience:** AI researchers, developers, and enthusiasts tracking prompt evolution
+**Primary Focus:** Compare system prompts across LLM versions. 
 
 ## Core Features
 
@@ -41,39 +39,28 @@ A public web tool for comparing system prompts across LLM versions, highlighting
 ### Data Storage
 
 #### File Structure
+
+The filename will include the model name and version in date. 
+
 ```
 /data/
   anthropic/
-    claude-3-5-sonnet-20241022.json
-    claude-3-5-sonnet-20240620.json
-    claude-3-opus-20240229.json
+    claude-haiku-3-20240712.txt
+    claude-opus-3-20240712.txt
+    claude-haiku-3.5-20241022.txt
     ...
   openai/           # future
-    gpt-4-turbo.json
     ...
 ```
 
 #### Prompt File Schema
-```json
-{
-  "version": "claude-3-5-sonnet-20241022",
-  "releaseDate": "2024-10-22",
-  "model": "Claude 3.5 Sonnet",
-  "provider": "Anthropic",
-  "sourceUrl": "https://platform.claude.com/docs/en/release-notes/system-prompts",
-  "prompt": "The full system prompt text goes here..."
-}
+
+From Claude Haiku 3:
+
+```plain
+The assistant is Claude, created by Anthropic. The current date is {{currentDateTime}}. Claude's knowledge base was last updated in August 2023 and it answers user questions about events before August 2023 and after August 2023 the same way a highly informed individual from August 2023 would if they were talking to someone from {{currentDateTime}}. It should give concise responses to very simple questions, but provide thorough responses to more complex and open-ended questions. It is happy to help with writing, analysis, question answering, math, coding, and all sorts of other tasks. It uses markdown for coding. It does not mention this information about itself unless the information is directly pertinent to the human's query.
 ```
 
-#### Field Definitions
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `version` | string | Yes | Unique identifier matching filename (without .json) |
-| `releaseDate` | string | Yes | ISO 8601 date (YYYY-MM-DD) |
-| `model` | string | Yes | Human-readable model name |
-| `provider` | string | Yes | Company name (Anthropic, OpenAI, etc.) |
-| `sourceUrl` | string | Yes | Link to official documentation |
-| `prompt` | string | Yes | The full system prompt text |
 
 ### Data Loading
 - Prompt files are loaded at build time by Astro
@@ -99,8 +86,6 @@ A public web tool for comparing system prompts across LLM versions, highlighting
 |   diff highlights  |   diff highlights   |
 |                    |                     |
 +------------------------------------------+
-|  Source: [link]    |  Source: [link]     |
-+------------------------------------------+
 ```
 
 ### Visual Design
@@ -124,19 +109,10 @@ Sorted by release date, newest first.
 ## Data Management
 
 ### Adding New Prompts (Manual Process)
-1. Create new JSON file in appropriate provider folder
+1. Create new txt file in appropriate provider folder
 2. Follow the schema exactly
 3. Submit PR to repository
 4. GitHub Action rebuilds and deploys on merge
-
-### Future: Automated Updates
-Architecture supports future GitHub Action that could:
-- Periodically check source URLs for updates
-- Parse and extract new prompts
-- Auto-commit new prompt files
-- Trigger rebuild
-
-(Not implemented in v1)
 
 ## Error Handling
 
@@ -158,7 +134,6 @@ Architecture supports future GitHub Action that could:
   - Complete replacement (entirely different prompts)
   - Partial changes (mixed additions/deletions/unchanged)
   - Edge cases: empty strings, whitespace-only changes, special characters
-- **Data parsing:** Verify JSON schema validation
 - **URL param parsing:** Verify query string handling
 
 ### Integration Tests
@@ -220,7 +195,7 @@ delta-prompts/
 │       └── deploy.yml        # GitHub Pages deployment
 ├── data/
 │   └── anthropic/
-│       └── *.json            # Prompt files
+│       └── *.txt            # Prompt files
 ├── src/
 │   ├── components/
 │   │   ├── DiffViewer.astro  # Main diff display component
