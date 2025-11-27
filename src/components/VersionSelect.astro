@@ -1,0 +1,50 @@
+---
+// ABOUTME: Dropdown component for selecting a prompt version.
+// ABOUTME: Displays model name and date for each option.
+
+import type { ManifestEntry } from '../lib/prompts';
+
+interface Props {
+  id: string;
+  label: string;
+  prompts: ManifestEntry[];
+  selectedId?: string;
+}
+
+const { id, label, prompts, selectedId } = Astro.props;
+
+function formatOption(prompt: ManifestEntry): string {
+  return `${prompt.model} (${prompt.date})`;
+}
+---
+
+<div class="version-select">
+  <label for={id}>{label}</label>
+  <select id={id} name={id} data-version-select>
+    {
+      prompts.map((prompt) => (
+        <option value={prompt.id} selected={prompt.id === selectedId}>
+          {formatOption(prompt)}
+        </option>
+      ))
+    }
+  </select>
+</div>
+
+<style>
+  .version-select {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+  }
+
+  select {
+    min-width: 280px;
+  }
+</style>

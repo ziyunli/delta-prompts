@@ -1,0 +1,92 @@
+---
+// ABOUTME: Side-by-side diff viewer component with word-level highlighting.
+// ABOUTME: Shows deletions on left, additions on right with color coding.
+
+import type { DiffResult } from '../lib/diff';
+
+interface Props {
+  diff: DiffResult;
+  leftLabel?: string;
+  rightLabel?: string;
+}
+
+const { diff, leftLabel = 'Previous', rightLabel = 'Current' } = Astro.props;
+---
+
+<div class="diff-viewer">
+  <div class="diff-panel diff-panel-left">
+    <div class="diff-panel-header">{leftLabel}</div>
+    <pre class="diff-content">{
+      diff.segments.map((segment) => {
+        if (segment.added) {
+          return null;
+        }
+        if (segment.removed) {
+          return <span class="diff-removed">{segment.value}</span>;
+        }
+        return segment.value;
+      })
+    }</pre>
+  </div>
+  <div class="diff-panel diff-panel-right">
+    <div class="diff-panel-header">{rightLabel}</div>
+    <pre class="diff-content">{
+      diff.segments.map((segment) => {
+        if (segment.removed) {
+          return null;
+        }
+        if (segment.added) {
+          return <span class="diff-added">{segment.value}</span>;
+        }
+        return segment.value;
+      })
+    }</pre>
+  </div>
+</div>
+
+<style>
+  .diff-viewer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+  }
+
+  .diff-panel {
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .diff-panel-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: #f6f8fa;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-muted);
+  }
+
+  .diff-content {
+    margin: 0;
+    padding: var(--spacing-md);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-x: auto;
+    min-height: 200px;
+    max-height: 600px;
+    overflow-y: auto;
+  }
+
+  .diff-added {
+    background-color: var(--color-added-bg);
+    color: var(--color-added-text);
+  }
+
+  .diff-removed {
+    background-color: var(--color-removed-bg);
+    color: var(--color-removed-text);
+  }
+</style>

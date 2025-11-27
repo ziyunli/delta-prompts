@@ -1,0 +1,234 @@
+---
+// ABOUTME: Main index page for delta-prompts.
+// ABOUTME: Displays the prompt comparison interface with diff viewer.
+
+import Layout from '../layouts/Layout.astro';
+import VersionSelect from '../components/VersionSelect.astro';
+import DiffViewer from '../components/DiffViewer.astro';
+import { loadAllPrompts } from '../lib/prompts';
+import { computeDiff } from '../lib/diff';
+
+const prompts = await loadAllPrompts();
+
+const defaultLeftId = prompts[1]?.id ?? prompts[0]?.id;
+const defaultRightId = prompts[0]?.id;
+
+const defaultLeftPrompt = prompts.find((p) => p.id === defaultLeftId);
+const defaultRightPrompt = prompts.find((p) => p.id === defaultRightId);
+
+const defaultLeftContent = defaultLeftPrompt?.content ?? '';
+const defaultRightContent = defaultRightPrompt?.content ?? '';
+
+const defaultDiff = computeDiff(defaultLeftContent, defaultRightContent);
+
+const promptsData = prompts.map(({ id, model, date, provider, content }) => ({
+  id,
+  model,
+  date,
+  provider,
+  content,
+}));
+
+const manifestData = prompts.map(({ id, model, date, provider }) => ({
+  id,
+  model,
+  date,
+  provider,
+}));
+---
+
+<Layout>
+  <header>
+    <h1>delta-prompts</h1>
+    <p class="tagline">Track how LLM system prompts evolve</p>
+  </header>
+
+  {
+    prompts.length < 2 ? (
+      <div class="empty-state">
+        <p>Not enough prompts to compare. Add more prompt files to data/.</p>
+      </div>
+    ) : (
+      <>
+        <div class="controls">
+          <VersionSelect
+            id="left-version"
+            label="Previous version"
+            prompts={manifestData}
+            selectedId={defaultLeftId}
+          />
+          <VersionSelect
+            id="right-version"
+            label="Current version"
+            prompts={manifestData}
+            selectedId={defaultRightId}
+          />
+        </div>
+
+        <div class="diff-container">
+          <DiffViewer
+            diff={defaultDiff}
+            leftLabel={defaultLeftPrompt?.model ?? 'Previous'}
+            rightLabel={defaultRightPrompt?.model ?? 'Current'}
+          />
+        </div>
+      </>
+    )
+  }
+</Layout>
+
+<script define:vars={{ promptsData, defaultLeftId, defaultRightId }}>
+  window.__PROMPTS_DATA__ = promptsData;
+  window.__DEFAULT_LEFT_ID__ = defaultLeftId;
+  window.__DEFAULT_RIGHT_ID__ = defaultRightId;
+</script>
+
+<script>
+  interface PromptData {
+    id: string;
+    model: string;
+    date: string;
+    provider: string;
+    content: string;
+  }
+
+  declare global {
+    interface Window {
+      __PROMPTS_DATA__: PromptData[];
+      __DEFAULT_LEFT_ID__: string;
+      __DEFAULT_RIGHT_ID__: string;
+    }
+  }
+
+  function getPromptById(id: string): PromptData | undefined {
+    return window.__PROMPTS_DATA__.find((p) => p.id === id);
+  }
+
+  function computeClientDiff(left: string, right: string) {
+    const diff = (window as unknown as { Diff: { diffWords: (a: string, b: string) => Array<{ value: string; added?: boolean; removed?: boolean }> } }).Diff.diffWords(left, right);
+    return diff;
+  }
+
+  function renderDiff(leftId: string, rightId: string) {
+    const leftPrompt = getPromptById(leftId);
+    const rightPrompt = getPromptById(rightId);
+
+    if (!leftPrompt || !rightPrompt) return;
+
+    const leftContent = leftPrompt.content;
+    const rightContent = rightPrompt.content;
+
+    const segments = computeClientDiff(leftContent, rightContent);
+
+    const leftPanel = document.querySelector('.diff-panel-left .diff-content');
+    const rightPanel = document.querySelector('.diff-panel-right .diff-content');
+    const leftHeader = document.querySelector('.diff-panel-left .diff-panel-header');
+    const rightHeader = document.querySelector('.diff-panel-right .diff-panel-header');
+
+    if (!leftPanel || !rightPanel) return;
+
+    let leftHtml = '';
+    let rightHtml = '';
+
+    for (const segment of segments) {
+      if (segment.added) {
+        rightHtml += `<span class="diff-added">${escapeHtml(segment.value)}</span>`;
+      } else if (segment.removed) {
+        leftHtml += `<span class="diff-removed">${escapeHtml(segment.value)}</span>`;
+      } else {
+        leftHtml += escapeHtml(segment.value);
+        rightHtml += escapeHtml(segment.value);
+      }
+    }
+
+    leftPanel.innerHTML = leftHtml;
+    rightPanel.innerHTML = rightHtml;
+
+    if (leftHeader) leftHeader.textContent = leftPrompt.model;
+    if (rightHeader) rightHeader.textContent = rightPrompt.model;
+  }
+
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function initFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const leftId = params.get('left') ?? window.__DEFAULT_LEFT_ID__;
+    const rightId = params.get('right') ?? window.__DEFAULT_RIGHT_ID__;
+
+    const leftSelect = document.getElementById('left-version') as HTMLSelectElement;
+    const rightSelect = document.getElementById('right-version') as HTMLSelectElement;
+
+    if (leftSelect && rightSelect) {
+      if (leftSelect.value !== leftId) {
+        leftSelect.value = leftId;
+      }
+      if (rightSelect.value !== rightId) {
+        rightSelect.value = rightId;
+      }
+
+      if (params.has('left') || params.has('right')) {
+        renderDiff(leftId, rightId);
+      }
+    }
+  }
+
+  function updateURL() {
+    const leftSelect = document.getElementById('left-version') as HTMLSelectElement;
+    const rightSelect = document.getElementById('right-version') as HTMLSelectElement;
+
+    if (!leftSelect || !rightSelect) return;
+
+    const leftId = leftSelect.value;
+    const rightId = rightSelect.value;
+
+    const params = new URLSearchParams();
+    params.set('left', leftId);
+    params.set('right', rightId);
+
+    const newURL = `${window.location.pathname}?${params.toString()}`;
+    window.history.pushState({}, '', newURL);
+
+    renderDiff(leftId, rightId);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initFromURL();
+
+    document.querySelectorAll('[data-version-select]').forEach((select) => {
+      select.addEventListener('change', updateURL);
+    });
+  });
+
+  window.addEventListener('popstate', initFromURL);
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
+
+<style>
+  header {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .tagline {
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  .controls {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+  }
+
+  .empty-state {
+    padding: var(--spacing-xl);
+    text-align: center;
+    color: var(--color-text-muted);
+    border: 1px dashed var(--color-border);
+    border-radius: 4px;
+  }
+</style>

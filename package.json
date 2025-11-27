@@ -1,0 +1,26 @@
+{
+  "name": "delta-prompts",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
+  },
+  "dependencies": {
+    "astro": "^5.16.1",
+    "diff": "^8.0.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/diff": "^7.0.2",
+    "@vitest/coverage-v8": "^4.0.14",
+    "vitest": "^4.0.14"
+  }
+}
