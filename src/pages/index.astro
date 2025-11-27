@@ -2,11 +2,11 @@
 // ABOUTME: Main index page for delta-prompts.
 // ABOUTME: Displays the prompt comparison interface with diff viewer.
 
-import Layout from '../layouts/Layout.astro';
-import VersionSelect from '../components/VersionSelect.astro';
-import DiffViewer from '../components/DiffViewer.astro';
-import { loadAllPrompts } from '../lib/prompts';
-import { computeDiff } from '../lib/diff';
+import Layout from "../layouts/Layout.astro";
+import VersionSelect from "../components/VersionSelect.astro";
+import DiffViewer from "../components/DiffViewer.astro";
+import { loadAllPrompts } from "../lib/prompts";
+import { computeDiff } from "../lib/diff";
 
 const prompts = await loadAllPrompts();
 
@@ -16,208 +16,228 @@ const defaultRightId = prompts[0]?.id;
 const defaultLeftPrompt = prompts.find((p) => p.id === defaultLeftId);
 const defaultRightPrompt = prompts.find((p) => p.id === defaultRightId);
 
-const defaultLeftContent = defaultLeftPrompt?.content ?? '';
-const defaultRightContent = defaultRightPrompt?.content ?? '';
+const defaultLeftContent = defaultLeftPrompt?.content ?? "";
+const defaultRightContent = defaultRightPrompt?.content ?? "";
 
 const defaultDiff = computeDiff(defaultLeftContent, defaultRightContent);
 
 const promptsData = prompts.map(({ id, model, date, provider, content }) => ({
-  id,
-  model,
-  date,
-  provider,
-  content,
+    id,
+    model,
+    date,
+    provider,
+    content,
 }));
 
 const manifestData = prompts.map(({ id, model, date, provider }) => ({
-  id,
-  model,
-  date,
-  provider,
+    id,
+    model,
+    date,
+    provider,
 }));
 ---
 
 <Layout>
-  <header>
-    <h1>delta-prompts</h1>
-    <p class="tagline">Track how LLM system prompts evolve</p>
-  </header>
+    <header>
+        <h1>Δ Prompts</h1>
+        <p class="tagline">Diffing LLM System Prompts since 2025</p>
+    </header>
 
-  {
-    prompts.length < 2 ? (
-      <div class="empty-state">
-        <p>Not enough prompts to compare. Add more prompt files to data/.</p>
-      </div>
-    ) : (
-      <>
-        <div class="controls">
-          <VersionSelect
-            id="left-version"
-            label="Previous version"
-            prompts={manifestData}
-            selectedId={defaultLeftId}
-          />
-          <VersionSelect
-            id="right-version"
-            label="Current version"
-            prompts={manifestData}
-            selectedId={defaultRightId}
-          />
-        </div>
+    {
+        prompts.length < 2 ? (
+            <div class="empty-state">
+                <p>
+                    Not enough prompts to compare. Add more prompt files to
+                    data/.
+                </p>
+            </div>
+        ) : (
+            <>
+                <div class="controls">
+                    <VersionSelect
+                        id="left-version"
+                        label="Previous version"
+                        prompts={manifestData}
+                        selectedId={defaultLeftId}
+                    />
+                    <VersionSelect
+                        id="right-version"
+                        label="Current version"
+                        prompts={manifestData}
+                        selectedId={defaultRightId}
+                    />
+                </div>
 
-        <div class="diff-container">
-          <DiffViewer
-            diff={defaultDiff}
-            leftLabel={defaultLeftPrompt?.model ?? 'Previous'}
-            rightLabel={defaultRightPrompt?.model ?? 'Current'}
-          />
-        </div>
-      </>
-    )
-  }
+                <div class="diff-container">
+                    <DiffViewer
+                        diff={defaultDiff}
+                        leftLabel={defaultLeftPrompt?.model ?? "Previous"}
+                        rightLabel={defaultRightPrompt?.model ?? "Current"}
+                    />
+                </div>
+            </>
+        )
+    }
 </Layout>
 
 <script define:vars={{ promptsData, defaultLeftId, defaultRightId }}>
-  window.__PROMPTS_DATA__ = promptsData;
-  window.__DEFAULT_LEFT_ID__ = defaultLeftId;
-  window.__DEFAULT_RIGHT_ID__ = defaultRightId;
+    window.__PROMPTS_DATA__ = promptsData;
+    window.__DEFAULT_LEFT_ID__ = defaultLeftId;
+    window.__DEFAULT_RIGHT_ID__ = defaultRightId;
 </script>
 
-<script is:inline src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
+<script is:inline src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"
+></script>
 
 <script is:inline>
-  function getPromptById(id) {
-    return window.__PROMPTS_DATA__.find(function(p) { return p.id === id; });
-  }
-
-  function computeClientDiff(left, right) {
-    if (typeof window.Diff === 'undefined') {
-      console.error('Diff library not loaded');
-      return [];
-    }
-    return window.Diff.diffWords(left, right);
-  }
-
-  function renderDiff(leftId, rightId) {
-    var leftPrompt = getPromptById(leftId);
-    var rightPrompt = getPromptById(rightId);
-
-    if (!leftPrompt || !rightPrompt) return;
-
-    var leftContent = leftPrompt.content;
-    var rightContent = rightPrompt.content;
-
-    var segments = computeClientDiff(leftContent, rightContent);
-
-    var leftPanel = document.querySelector('.diff-panel-left .diff-content');
-    var rightPanel = document.querySelector('.diff-panel-right .diff-content');
-    var leftHeader = document.querySelector('.diff-panel-left .diff-panel-header');
-    var rightHeader = document.querySelector('.diff-panel-right .diff-panel-header');
-
-    if (!leftPanel || !rightPanel) return;
-
-    var leftHtml = '';
-    var rightHtml = '';
-
-    for (var i = 0; i < segments.length; i++) {
-      var segment = segments[i];
-      if (segment.added) {
-        rightHtml += '<span class="diff-added">' + escapeHtml(segment.value) + '</span>';
-      } else if (segment.removed) {
-        leftHtml += '<span class="diff-removed">' + escapeHtml(segment.value) + '</span>';
-      } else {
-        leftHtml += escapeHtml(segment.value);
-        rightHtml += escapeHtml(segment.value);
-      }
+    function getPromptById(id) {
+        return window.__PROMPTS_DATA__.find(function (p) {
+            return p.id === id;
+        });
     }
 
-    leftPanel.innerHTML = leftHtml;
-    rightPanel.innerHTML = rightHtml;
+    function computeClientDiff(left, right) {
+        if (typeof window.Diff === "undefined") {
+            console.error("Diff library not loaded");
+            return [];
+        }
+        return window.Diff.diffWords(left, right);
+    }
 
-    if (leftHeader) leftHeader.textContent = leftPrompt.model;
-    if (rightHeader) rightHeader.textContent = rightPrompt.model;
-  }
+    function renderDiff(leftId, rightId) {
+        var leftPrompt = getPromptById(leftId);
+        var rightPrompt = getPromptById(rightId);
 
-  function escapeHtml(text) {
-    var div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
+        if (!leftPrompt || !rightPrompt) return;
 
-  function initFromURL() {
-    var params = new URLSearchParams(window.location.search);
-    var leftId = params.get('left') || window.__DEFAULT_LEFT_ID__;
-    var rightId = params.get('right') || window.__DEFAULT_RIGHT_ID__;
+        var leftContent = leftPrompt.content;
+        var rightContent = rightPrompt.content;
 
-    var leftSelect = document.getElementById('left-version');
-    var rightSelect = document.getElementById('right-version');
+        var segments = computeClientDiff(leftContent, rightContent);
 
-    if (leftSelect && rightSelect) {
-      if (leftSelect.value !== leftId) {
-        leftSelect.value = leftId;
-      }
-      if (rightSelect.value !== rightId) {
-        rightSelect.value = rightId;
-      }
+        var leftPanel = document.querySelector(
+            ".diff-panel-left .diff-content",
+        );
+        var rightPanel = document.querySelector(
+            ".diff-panel-right .diff-content",
+        );
+        var leftHeader = document.querySelector(
+            ".diff-panel-left .diff-panel-header",
+        );
+        var rightHeader = document.querySelector(
+            ".diff-panel-right .diff-panel-header",
+        );
 
-      if (params.has('left') || params.has('right')) {
+        if (!leftPanel || !rightPanel) return;
+
+        var leftHtml = "";
+        var rightHtml = "";
+
+        for (var i = 0; i < segments.length; i++) {
+            var segment = segments[i];
+            if (segment.added) {
+                rightHtml +=
+                    '<span class="diff-added">' +
+                    escapeHtml(segment.value) +
+                    "</span>";
+            } else if (segment.removed) {
+                leftHtml +=
+                    '<span class="diff-removed">' +
+                    escapeHtml(segment.value) +
+                    "</span>";
+            } else {
+                leftHtml += escapeHtml(segment.value);
+                rightHtml += escapeHtml(segment.value);
+            }
+        }
+
+        leftPanel.innerHTML = leftHtml;
+        rightPanel.innerHTML = rightHtml;
+
+        if (leftHeader) leftHeader.textContent = leftPrompt.model;
+        if (rightHeader) rightHeader.textContent = rightPrompt.model;
+    }
+
+    function escapeHtml(text) {
+        var div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function initFromURL() {
+        var params = new URLSearchParams(window.location.search);
+        var leftId = params.get("left") || window.__DEFAULT_LEFT_ID__;
+        var rightId = params.get("right") || window.__DEFAULT_RIGHT_ID__;
+
+        var leftSelect = document.getElementById("left-version");
+        var rightSelect = document.getElementById("right-version");
+
+        if (leftSelect && rightSelect) {
+            if (leftSelect.value !== leftId) {
+                leftSelect.value = leftId;
+            }
+            if (rightSelect.value !== rightId) {
+                rightSelect.value = rightId;
+            }
+
+            if (params.has("left") || params.has("right")) {
+                renderDiff(leftId, rightId);
+            }
+        }
+    }
+
+    function updateURL() {
+        var leftSelect = document.getElementById("left-version");
+        var rightSelect = document.getElementById("right-version");
+
+        if (!leftSelect || !rightSelect) return;
+
+        var leftId = leftSelect.value;
+        var rightId = rightSelect.value;
+
+        var params = new URLSearchParams();
+        params.set("left", leftId);
+        params.set("right", rightId);
+
+        var newURL = window.location.pathname + "?" + params.toString();
+        window.history.pushState({}, "", newURL);
+
         renderDiff(leftId, rightId);
-      }
     }
-  }
 
-  function updateURL() {
-    var leftSelect = document.getElementById('left-version');
-    var rightSelect = document.getElementById('right-version');
+    document.addEventListener("DOMContentLoaded", function () {
+        initFromURL();
 
-    if (!leftSelect || !rightSelect) return;
+        var selects = document.querySelectorAll("[data-version-select]");
+        for (var i = 0; i < selects.length; i++) {
+            selects[i].addEventListener("change", updateURL);
+        }
+    });
 
-    var leftId = leftSelect.value;
-    var rightId = rightSelect.value;
-
-    var params = new URLSearchParams();
-    params.set('left', leftId);
-    params.set('right', rightId);
-
-    var newURL = window.location.pathname + '?' + params.toString();
-    window.history.pushState({}, '', newURL);
-
-    renderDiff(leftId, rightId);
-  }
-
-  document.addEventListener('DOMContentLoaded', function() {
-    initFromURL();
-
-    var selects = document.querySelectorAll('[data-version-select]');
-    for (var i = 0; i < selects.length; i++) {
-      selects[i].addEventListener('change', updateURL);
-    }
-  });
-
-  window.addEventListener('popstate', initFromURL);
+    window.addEventListener("popstate", initFromURL);
 </script>
 
 <style>
-  header {
-    margin-bottom: var(--spacing-lg);
-  }
+    header {
+        margin-bottom: var(--spacing-lg);
+    }
 
-  .tagline {
-    color: var(--color-text-muted);
-    margin: 0;
-  }
+    .tagline {
+        color: var(--color-text-muted);
+        margin: 0;
+    }
 
-  .controls {
-    display: flex;
-    gap: var(--spacing-lg);
-    flex-wrap: wrap;
-  }
+    .controls {
+        display: flex;
+        gap: var(--spacing-lg);
+        flex-wrap: wrap;
+    }
 
-  .empty-state {
-    padding: var(--spacing-xl);
-    text-align: center;
-    color: var(--color-text-muted);
-    border: 1px dashed var(--color-border);
-    border-radius: 4px;
-  }
+    .empty-state {
+        padding: var(--spacing-xl);
+        text-align: center;
+        color: var(--color-text-muted);
+        border: 1px dashed var(--color-border);
+        border-radius: 4px;
+    }
 </style>
