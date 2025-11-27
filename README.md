@@ -2,6 +2,8 @@
 
 A static web tool for comparing LLM system prompts across versions with word-level diff highlighting.
 
+> **Disclaimer:** This entire project was built through conversational programming with Claude Opus 4 (claude-opus-4-5-20250101) using [Claude Code](https://claude.ai/code) as the agentic coding assistant. From initial setup to deployment configuration, all code was generated via natural language prompts following a TDD approach. The human provided the spec, reviewed outputs, and reported bugs—Claude wrote all the code.
+
 **Live Site:** https://ziyunli.github.io/delta-prompts/
 
 ## Features
