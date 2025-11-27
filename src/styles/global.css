@@ -2,82 +2,93 @@
 /* ABOUTME: Minimal, utilitarian design with system fonts. */
 
 :root {
-  --color-bg: #ffffff;
-  --color-text: #1a1a1a;
-  --color-text-muted: #666666;
-  --color-border: #e0e0e0;
+    --color-bg: #ffffff;
+    --color-text: #1a1a1a;
+    --color-text-muted: #666666;
+    --color-border: #e0e0e0;
 
-  --color-added-bg: #eaffea;
-  --color-added-text: #22863a;
-  --color-removed-bg: #ffecec;
-  --color-removed-text: #cb2431;
+    --color-added-bg: #eaffea;
+    --color-added-text: #22863a;
+    --color-removed-bg: #ffecec;
+    --color-removed-text: #cb2431;
 
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
-    monospace;
+    --font-sans:
+        system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        sans-serif;
+    --font-mono:
+        ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
 }
 
 *,
 *::before,
 *::after {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 html {
-  font-size: 16px;
+    font-size: 16px;
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  font-family: var(--font-sans);
-  font-size: 1rem;
-  line-height: 1.5;
-  color: var(--color-text);
-  background-color: var(--color-bg);
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--color-text);
+    background-color: var(--color-bg);
 }
 
 h1,
 h2,
 h3 {
-  margin-top: 0;
-  line-height: 1.2;
+    margin-top: 0;
+    line-height: 1.2;
 }
 
 h1 {
-  font-size: 1.5rem;
-  font-weight: 600;
+    font-size: 1.5rem;
+    font-weight: 600;
 }
 
 select {
-  font-family: inherit;
-  font-size: 0.875rem;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  background-color: var(--color-bg);
-  cursor: pointer;
+    font-family: inherit;
+    font-size: 0.875rem;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background-color: var(--color-bg);
+    cursor: pointer;
 }
 
 select:focus {
-  outline: 2px solid var(--color-text);
-  outline-offset: 2px;
+    outline: 2px solid var(--color-text);
+    outline-offset: 2px;
 }
 
 pre,
 code {
-  font-family: var(--font-mono);
+    font-family: var(--font-mono);
 }
 
 .container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: var(--spacing-md) var(--spacing-lg);
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.diff-added {
+    background-color: var(--color-added-bg);
+    color: var(--color-added-text);
+}
+
+.diff-removed {
+    background-color: var(--color-removed-bg);
+    color: var(--color-removed-text);
 }

@@ -83,58 +83,48 @@ const manifestData = prompts.map(({ id, model, date, provider }) => ({
   window.__DEFAULT_RIGHT_ID__ = defaultRightId;
 </script>
 
-<script>
-  interface PromptData {
-    id: string;
-    model: string;
-    date: string;
-    provider: string;
-    content: string;
+<script is:inline src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
+
+<script is:inline>
+  function getPromptById(id) {
+    return window.__PROMPTS_DATA__.find(function(p) { return p.id === id; });
   }
 
-  declare global {
-    interface Window {
-      __PROMPTS_DATA__: PromptData[];
-      __DEFAULT_LEFT_ID__: string;
-      __DEFAULT_RIGHT_ID__: string;
+  function computeClientDiff(left, right) {
+    if (typeof window.Diff === 'undefined') {
+      console.error('Diff library not loaded');
+      return [];
     }
+    return window.Diff.diffWords(left, right);
   }
 
-  function getPromptById(id: string): PromptData | undefined {
-    return window.__PROMPTS_DATA__.find((p) => p.id === id);
-  }
-
-  function computeClientDiff(left: string, right: string) {
-    const diff = (window as unknown as { Diff: { diffWords: (a: string, b: string) => Array<{ value: string; added?: boolean; removed?: boolean }> } }).Diff.diffWords(left, right);
-    return diff;
-  }
-
-  function renderDiff(leftId: string, rightId: string) {
-    const leftPrompt = getPromptById(leftId);
-    const rightPrompt = getPromptById(rightId);
+  function renderDiff(leftId, rightId) {
+    var leftPrompt = getPromptById(leftId);
+    var rightPrompt = getPromptById(rightId);
 
     if (!leftPrompt || !rightPrompt) return;
 
-    const leftContent = leftPrompt.content;
-    const rightContent = rightPrompt.content;
+    var leftContent = leftPrompt.content;
+    var rightContent = rightPrompt.content;
 
-    const segments = computeClientDiff(leftContent, rightContent);
+    var segments = computeClientDiff(leftContent, rightContent);
 
-    const leftPanel = document.querySelector('.diff-panel-left .diff-content');
-    const rightPanel = document.querySelector('.diff-panel-right .diff-content');
-    const leftHeader = document.querySelector('.diff-panel-left .diff-panel-header');
-    const rightHeader = document.querySelector('.diff-panel-right .diff-panel-header');
+    var leftPanel = document.querySelector('.diff-panel-left .diff-content');
+    var rightPanel = document.querySelector('.diff-panel-right .diff-content');
+    var leftHeader = document.querySelector('.diff-panel-left .diff-panel-header');
+    var rightHeader = document.querySelector('.diff-panel-right .diff-panel-header');
 
     if (!leftPanel || !rightPanel) return;
 
-    let leftHtml = '';
-    let rightHtml = '';
+    var leftHtml = '';
+    var rightHtml = '';
 
-    for (const segment of segments) {
+    for (var i = 0; i < segments.length; i++) {
+      var segment = segments[i];
       if (segment.added) {
-        rightHtml += `<span class="diff-added">${escapeHtml(segment.value)}</span>`;
+        rightHtml += '<span class="diff-added">' + escapeHtml(segment.value) + '</span>';
       } else if (segment.removed) {
-        leftHtml += `<span class="diff-removed">${escapeHtml(segment.value)}</span>`;
+        leftHtml += '<span class="diff-removed">' + escapeHtml(segment.value) + '</span>';
       } else {
         leftHtml += escapeHtml(segment.value);
         rightHtml += escapeHtml(segment.value);
@@ -148,19 +138,19 @@ const manifestData = prompts.map(({ id, model, date, provider }) => ({
     if (rightHeader) rightHeader.textContent = rightPrompt.model;
   }
 
-  function escapeHtml(text: string): string {
-    const div = document.createElement('div');
+  function escapeHtml(text) {
+    var div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
 
   function initFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    const leftId = params.get('left') ?? window.__DEFAULT_LEFT_ID__;
-    const rightId = params.get('right') ?? window.__DEFAULT_RIGHT_ID__;
+    var params = new URLSearchParams(window.location.search);
+    var leftId = params.get('left') || window.__DEFAULT_LEFT_ID__;
+    var rightId = params.get('right') || window.__DEFAULT_RIGHT_ID__;
 
-    const leftSelect = document.getElementById('left-version') as HTMLSelectElement;
-    const rightSelect = document.getElementById('right-version') as HTMLSelectElement;
+    var leftSelect = document.getElementById('left-version');
+    var rightSelect = document.getElementById('right-version');
 
     if (leftSelect && rightSelect) {
       if (leftSelect.value !== leftId) {
@@ -177,36 +167,35 @@ const manifestData = prompts.map(({ id, model, date, provider }) => ({
   }
 
   function updateURL() {
-    const leftSelect = document.getElementById('left-version') as HTMLSelectElement;
-    const rightSelect = document.getElementById('right-version') as HTMLSelectElement;
+    var leftSelect = document.getElementById('left-version');
+    var rightSelect = document.getElementById('right-version');
 
     if (!leftSelect || !rightSelect) return;
 
-    const leftId = leftSelect.value;
-    const rightId = rightSelect.value;
+    var leftId = leftSelect.value;
+    var rightId = rightSelect.value;
 
-    const params = new URLSearchParams();
+    var params = new URLSearchParams();
     params.set('left', leftId);
     params.set('right', rightId);
 
-    const newURL = `${window.location.pathname}?${params.toString()}`;
+    var newURL = window.location.pathname + '?' + params.toString();
     window.history.pushState({}, '', newURL);
 
     renderDiff(leftId, rightId);
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', function() {
     initFromURL();
 
-    document.querySelectorAll('[data-version-select]').forEach((select) => {
-      select.addEventListener('change', updateURL);
-    });
+    var selects = document.querySelectorAll('[data-version-select]');
+    for (var i = 0; i < selects.length; i++) {
+      selects[i].addEventListener('change', updateURL);
+    }
   });
 
   window.addEventListener('popstate', initFromURL);
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/diff@5.1.0/dist/diff.min.js"></script>
 
 <style>
   header {
